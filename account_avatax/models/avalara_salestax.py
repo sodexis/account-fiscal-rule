@@ -137,7 +137,7 @@ class AvalaraSalestax(models.Model):
         " as upc identifier.",
     )
     avatax_company_id = fields.Char(
-        'Company ID',
+        "Company ID",
         help="The company ID as defined in the Admin Console of AvaTax",
     )
     # TODO: add option to Display Prices with Tax Included
