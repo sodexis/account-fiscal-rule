@@ -2,7 +2,6 @@
     "name": "Taxes using Avalara Avatax API",
     "version": "14.0.1.0.0",
     "author": "Fabrice Henrion, Odoo Community Association (OCA)",
-    "Odoo Community Association (OCA)",
     "summary": "Automatic Tax application using the Avalara Avatax Service",
     "license": "AGPL-3",
     "category": "Accounting",
