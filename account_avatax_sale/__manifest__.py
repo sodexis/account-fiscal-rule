@@ -1,8 +1,8 @@
 {
-    "name": "Taxes on Sales Orders using Avalara Avatax API",
+    "name": "Avalara Avatax Connector for Sales Orders",
     "version": "14.0.1.0.0",
     "author": "Open Source Integrators, Fabrice Henrion, Odoo SA,"
-    " Odoo Community Association (OCA)",
+    "Sodexis, Odoo Community Association (OCA)",
     "summary": "Sales Orders with automatic Tax application using Avatax",
     "license": "AGPL-3",
     "category": "Accounting",

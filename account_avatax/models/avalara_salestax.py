@@ -136,9 +136,11 @@ class AvalaraSalestax(models.Model):
         help="Allows ean13 to be reported in place of Item Reference"
         " as upc identifier.",
     )
-    avatax_company_id = fields.Char(
-        "Company ID",
-        help="The company ID as defined in the Admin Console of AvaTax",
+    invoice_calculate_tax = fields.Boolean(
+        "Auto Calculate Tax on Invoice Save",
+        help="Automatically triggers API to calculate tax If changes made on"
+             "Invoice's warehouse_id, tax_on_shipping_address, "
+             "Invoice line's price_unit, discount, quantity",
     )
     # TODO: add option to Display Prices with Tax Included
 
@@ -169,6 +171,7 @@ class AvalaraSalestax(models.Model):
             self.service_url,
             self.request_timeout,
             self.logging,
+            config=self,
         )
 
     def create_transaction(
@@ -283,6 +286,7 @@ class AvalaraSalestax(models.Model):
 
     def commit_transaction(self, doc_code, doc_type):
         self.ensure_one()
+        result = False
         if not self.disable_tax_reporting:
             avatax = self.get_avatax_rest_service()
             result = avatax.call(
@@ -292,6 +296,7 @@ class AvalaraSalestax(models.Model):
 
     def void_transaction(self, doc_code, doc_type):
         self.ensure_one()
+        result = False
         if not self.disable_tax_reporting:
             avatax = self.get_avatax_rest_service()
             result = avatax.call(
@@ -301,6 +306,7 @@ class AvalaraSalestax(models.Model):
 
     def unvoid_transaction(self, doc_code, doc_type):
         self.ensure_one()
+        result = False
         if not self.disable_tax_reporting:
             avatax = self.get_avatax_rest_service()
             result = avatax.call("unvoid_transaction", self.company_code, doc_code)
