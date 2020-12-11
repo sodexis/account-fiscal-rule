@@ -286,38 +286,47 @@ class AccountMove(models.Model):
                 avatax.void_transaction(invoice.name, doc_type)
         return super(AccountMove, self).button_draft()
 
-    @api.onchange("invoice_line_ids",
+    @api.onchange(
+        "invoice_line_ids",
         "warehouse_id",
         "tax_address_id",
         "tax_on_shipping_address",
     )
     def onchange_avatax_calculation(self):
-        avatax_config = self.env['avalara.salestax'].sudo().search([],limit = 1)
+        avatax_config = self.env["avalara.salestax"].sudo().search([], limit=1)
         self.calculate_tax_on_save = False
         if avatax_config.invoice_calculate_tax:
-            if self._origin.warehouse_id != self.warehouse_id or \
-                self._origin.tax_address_id.street != self.tax_address_id.street or \
-                self._origin.tax_on_shipping_address != self.tax_on_shipping_address:
+            if (
+                self._origin.warehouse_id != self.warehouse_id
+                or self._origin.tax_address_id.street != self.tax_address_id.street
+                or self._origin.tax_on_shipping_address != self.tax_on_shipping_address
+            ):
                 self.calculate_tax_on_save = True
                 return
             for line in self.invoice_line_ids:
-                if line._origin.price_unit != line.price_unit or \
-                line._origin.discount != line.discount or \
-                line._origin.quantity != line.quantity:
+                if (
+                    line._origin.price_unit != line.price_unit
+                    or line._origin.discount != line.discount
+                    or line._origin.quantity != line.quantity
+                ):
                     self.calculate_tax_on_save = True
                     break
 
     def write(self, vals):
         result = super(AccountMove, self).write(vals)
-        avatax_config = self.env['avalara.salestax'].sudo().search([],limit = 1)
+        avatax_config = self.env["avalara.salestax"].sudo().search([], limit=1)
         for record in self:
-            if avatax_config.invoice_calculate_tax and \
-                    record.calculate_tax_on_save and \
-                    record.state == 'draft' and \
-                    not self._context.get('skip_second_write', False):
-                record.with_context(skip_second_write=True).write({
-                    'calculate_tax_on_save': False,
-                })
+            if (
+                avatax_config.invoice_calculate_tax
+                and record.calculate_tax_on_save
+                and record.state == "draft"
+                and not self._context.get("skip_second_write", False)
+            ):
+                record.with_context(skip_second_write=True).write(
+                    {
+                        "calculate_tax_on_save": False,
+                    }
+                )
                 self.avatax_compute_taxes()
         return result
 

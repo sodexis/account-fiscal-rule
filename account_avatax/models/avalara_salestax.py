@@ -139,8 +139,8 @@ class AvalaraSalestax(models.Model):
     invoice_calculate_tax = fields.Boolean(
         "Auto Calculate Tax on Invoice Save",
         help="Automatically triggers API to calculate tax If changes made on"
-             "Invoice's warehouse_id, tax_on_shipping_address, "
-             "Invoice line's price_unit, discount, quantity",
+        "Invoice's warehouse_id, tax_on_shipping_address, "
+        "Invoice line's price_unit, discount, quantity",
     )
     # TODO: add option to Display Prices with Tax Included
 
