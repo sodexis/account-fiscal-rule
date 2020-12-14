@@ -4,24 +4,7 @@ from odoo import api, fields, models
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
-    @api.depends("tax_on_shipping_address", "partner_id", "partner_shipping_id")
-    def _compute_tax_id(self):
-        for order in self:
-            order.tax_add_id = (
-                order.partner_shipping_id
-                if order.tax_on_shipping_address
-                else order.partner_id
-            )
-
     tax_amount = fields.Monetary(string="AvaTax")
-    tax_add_id = fields.Many2one(
-        "res.partner",
-        "Tax Address",
-        readonly=True,
-        states={"draft": [("readonly", False)]},
-        compute="_compute_tax_id",
-        store=True,
-    )
 
     @api.onchange("partner_shipping_id", "partner_id")
     def onchange_partner_shipping_id(self):
@@ -37,7 +20,7 @@ class SaleOrder(models.Model):
         self.tax_on_shipping_address = bool(self.partner_shipping_id)
         return res
 
-    @api.depends("partner_shipping_id", "partner_id", "company_id")
+    @api.depends("partner_invoice_id", "tax_address_id", "company_id")
     def _compute_onchange_exemption(self):
         for order in self:
             invoice_partner = order.partner_invoice_id.commercial_partner_id
@@ -55,8 +38,8 @@ class SaleOrder(models.Model):
                 )
             )[:1]
             # Force Company to get the correct values form the Property fields
-            exemption_address = exemption_address_naive.with_context(
-                force_company=order.company_id.id
+            exemption_address = exemption_address_naive.with_company(
+                order.company_id.id
             )
             order.exemption_code = exemption_address.property_exemption_number
             order.exemption_code_id = exemption_address.property_exemption_code_id
@@ -139,6 +122,7 @@ class SaleOrder(models.Model):
         store=True,
     )
     location_code = fields.Char("Location Code", help="Origin address location code")
+    calculate_tax_on_save = fields.Boolean()
 
     def _get_avatax_doc_type(self, commit=False):
         return "SalesOrder"
@@ -160,6 +144,8 @@ class SaleOrder(models.Model):
         doc_type = self._get_avatax_doc_type()
         Tax = self.env["account.tax"]
         avatax_config = self.company_id.get_avatax_config_company()
+        if not avatax_config:
+            return False
         partner = self.partner_id
         if avatax_config.use_partner_invoice_id:
             partner = self.partner_invoice_id
@@ -215,6 +201,49 @@ class SaleOrder(models.Model):
         if avatax_config:
             self.avalara_compute_taxes()
         return res
+
+    @api.onchange(
+        "order_line",
+        "tax_on_shipping_address",
+        "tax_address_id",
+    )
+    def onchange_avatax_calculation(self):
+        avatax_config = self.env["avalara.salestax"].sudo().search([], limit=1)
+        self.calculate_tax_on_save = False
+        if avatax_config.sale_calculate_tax:
+            if (
+                self._origin.tax_address_id.street != self.tax_address_id.street
+                or self._origin.tax_on_shipping_address != self.tax_on_shipping_address
+            ):
+                self.calculate_tax_on_save = True
+                return
+            for line in self.order_line:
+                if (
+                    line._origin.product_uom_qty != line.product_uom_qty
+                    or line._origin.discount != line.discount
+                    or line._origin.price_unit != line.price_unit
+                    or line._origin.warehouse_id != line.warehouse_id
+                ):
+                    self.calculate_tax_on_save = True
+                    break
+
+    def write(self, vals):
+        result = super(SaleOrder, self).write(vals)
+        avatax_config = self.env["avalara.salestax"].sudo().search([], limit=1)
+        for record in self:
+            if (
+                avatax_config.sale_calculate_tax
+                and record.calculate_tax_on_save
+                and record.state == "draft"
+                and not self._context.get("skip_second_write", False)
+            ):
+                record.with_context(skip_second_write=True).write(
+                    {
+                        "calculate_tax_on_save": False,
+                    }
+                )
+                self.avalara_compute_taxes()
+        return result
 
 
 class SaleOrderLine(models.Model):
