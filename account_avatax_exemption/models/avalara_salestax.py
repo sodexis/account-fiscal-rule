@@ -778,17 +778,24 @@ class AvalaraSalestax(models.Model):
                     [("customer_code", "=", customer_info["customerCode"])], limit=1
                 )
             if not partner:
-                state = (
-                    self.env["res.country.state"]
-                    .sudo()
-                    .search(
-                        [
-                            ("code", "=", customer_info["region"]),
-                            ("country_id.code", "=", customer_info["country"]),
-                        ],
-                        limit=1,
-                    )
+                partner = partner_sudo.search(
+                    [("customer_code", "=", " %s:0" % (customer_info["customerCode"]))],
+                    limit=1,
                 )
+            if not partner:
+                state = self.env["res.country.state"]
+                if "region" in customer_info:
+                    state = (
+                        self.env["res.country.state"]
+                        .sudo()
+                        .search(
+                            [
+                                ("code", "=", customer_info["region"]),
+                                ("country_id.code", "=", customer_info["country"]),
+                            ],
+                            limit=1,
+                        )
+                    )
                 partner_vals = {
                     "name": customer_info["name"],
                     "street": customer_info["line1"],
@@ -810,7 +817,7 @@ class AvalaraSalestax(models.Model):
                 .search([("avatax_id", "=", result["id"])], limit=1)
             )
             if exemption:
-                return result
+                return "Exemption Already Downloaded\nSearch Response: %s" % (result)
             exposure_zone_info = result["exposureZone"]
             exposure_state = (
                 self.env["res.country.state"]
