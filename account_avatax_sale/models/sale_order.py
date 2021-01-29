@@ -54,6 +54,7 @@ class SaleOrder(models.Model):
                 "location_code": self.location_code or "",
                 "warehouse_id": self.warehouse_id.id or "",
                 "tax_on_shipping_address": self.tax_on_shipping_address,
+                "so_partner_id": self.partner_id.id,
             }
         )
         return invoice_vals
