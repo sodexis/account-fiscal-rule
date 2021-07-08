@@ -57,11 +57,6 @@
                 <group>
                     <field name="name" />
                     <field name="business_type" options="{'no_create': True}" />
-                    <field
-                        name="exemption_code_id"
-                        options="{'no_create': True}"
-                        required="1"
-                    />
                     <field name="group_of_state" />
                     <field
                         name="state_ids"
@@ -110,11 +105,6 @@
             <form string="Exemption Reason Type">
                 <group>
                     <field name="name" />
-                    <field
-                        name="exemption_code_id"
-                        options="{'no_create': True}"
-                        required="1"
-                    />
                     <field name="avatax_id" />
                 </group>
             </form>
@@ -127,7 +117,6 @@
         <field name="arch" type="xml">
             <tree string="Exemption Activity Type">
                 <field name="name" />
-                <field name="exemption_code_id" />
                 <field name="avatax_id" />
             </tree>
         </field>
@@ -168,11 +157,6 @@
                         <field name="exemption_type" />
                         <field
                             name="business_type"
-                            options="{'no_create': True, 'always_reload': True}"
-                            required="1"
-                        />
-                        <field
-                            name="exemption_code_id"
                             options="{'no_create': True, 'always_reload': True}"
                             required="1"
                         />

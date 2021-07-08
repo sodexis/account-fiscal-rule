@@ -9,14 +9,12 @@
     "author": "Sodexis, Odoo Community Association (OCA)",
     "license": "AGPL-3",
     "depends": [
-        "account_avatax",
-        "account_avatax_sale",
+        "mail",
     ],
     "data": [
         "security/ir.model.access.csv",
         "data/ir_sequence_data.xml",
         "views/res_country_state_view.xml",
-        "views/partner_view.xml",
         "views/avalara_exemption_view.xml",
     ],
     "installable": True,
