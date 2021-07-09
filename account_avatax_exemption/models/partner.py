@@ -4,7 +4,6 @@ from odoo import fields, models
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
-
     use_commercial_entity = fields.Boolean(compute="_compute_use_commercial_entity")
 
     def _compute_use_commercial_entity(self):
